@@ -49,8 +49,8 @@ router.get("/translate/fetchnews", async (req, res) => {
       });
     } else {
       res.json({
+        ...data,
         info: {
-          ...data,
           search: req.query.q || null,
           country: req.query.country || null,
           category: req.query.category || null,
