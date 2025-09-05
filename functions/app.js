@@ -20,16 +20,34 @@ router.get("/", (req, res) => {
 router.get("/translate/fetchnews", async (req, res) => {
   try {
     let url = apiUrl;
+    if (req.query.text) url += req.query.text + "?";
+    else url += "top-headlines?";
+
     if (req.query.q) url += "q=" + req.query.q;
-    if (req.query.country) url += "&country=" + req.query.country;
-    if (req.query.category) url += "&category=" + req.query.category;
+    if (req.query.country && !req.query.q) {
+      url += "&country=" + req.query.country;
+    }
+    if (req.query.category && !req.query.q) {
+      url += "&category=" + req.query.category;
+    }
     url += `&apiKey=${apiKey}&page=${req.query.page}&pageSize=${req.query.pageSize}`;
 
+    // console.log(req.query);
     const response = await fetch(url);
     const data = await response.json();
     const statusCode = data.code || "";
     if (data.status === "ok") {
-      res.json(data);
+      res.json({
+        ...data,
+        info: {
+          text: req.query.text || null,
+          search: req.query.q || null,
+          country: req.query.country || null,
+          category: req.query.category || null,
+          page: req.query.page || null,
+          pageSize: req.query.pageSize || null,
+        },
+      });
     } else if (
       statusCode === "apiKeyExhausted" ||
       statusCode === "rateLimited"
@@ -40,6 +58,7 @@ router.get("/translate/fetchnews", async (req, res) => {
       res.json({
         ...data2,
         info: {
+          text: req.query.text || null,
           search: req.query.q || null,
           country: req.query.country || null,
           category: req.query.category || null,
@@ -51,6 +70,7 @@ router.get("/translate/fetchnews", async (req, res) => {
       res.json({
         ...data,
         info: {
+          text: req.query.text || null,
           search: req.query.q || null,
           country: req.query.country || null,
           category: req.query.category || null,
@@ -60,7 +80,7 @@ router.get("/translate/fetchnews", async (req, res) => {
       });
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).send("Internal Server Error");
   }
 });
